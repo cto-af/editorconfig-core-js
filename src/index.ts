@@ -2,11 +2,13 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as semver from 'semver'
 
-import minimatch from './lib/fnmatch'
-import { parseString, ParseStringResult } from './lib/ini'
+import minimatch from './fnmatch'
+import { parseString, ParseStringResult } from './ini'
 
 export { parseString }
 
+// Ignore this so that we can set the rootDir to be 'lib'
+// @ts-ignore
 import pkg from '../package.json'
 
 export interface KnownProps {

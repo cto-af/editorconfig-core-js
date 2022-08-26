@@ -1,12 +1,12 @@
 {
-  "name": "editorconfig",
+  "name": "@cto.af/editorconfig",
   "version": "0.15.3",
   "description": "EditorConfig File Locator and Interpreter for Node.js",
   "keywords": [
     "editorconfig",
     "core"
   ],
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "contributors": [
     "Hong Xu (topbug.net)",
     "Jed Mao (https://github.com/jedmao/)",
@@ -18,26 +18,24 @@
     "lib": "./lib"
   },
   "scripts": {
-    "clean": "rimraf dist",
-    "parser": "peggy src/lib/iniFile.peggy",
+    "clean": "rimraf lib",
+    "parser": "peggy src/iniFile.peggy",
     "prebuild": "npm run clean",
     "build": "npm run parser && tsc",
-    "pretest": "npm run lint && npm run build && npm run copy && cmake .",
+    "pretest": "npm run lint && npm run build && cmake .",
     "test": "ctest .",
     "pretest:ci": "npm run pretest",
     "test:ci": "ctest -VV --output-on-failure .",
-    "lint": "npm run eclint && npm run tslint",
-    "eclint": "eclint check --indent_size ignore \"src/**\"",
+    "lint": "npm run tslint",
     "tslint": "tslint --project tsconfig.json --exclude package.json --exclude '**/*.js'",
-    "copy": "cpy .npmignore LICENSE README.md CHANGELOG.md dist && cpy bin dist && cpy src/**/*.js dist",
-    "prepub": "npm run lint && npm run build && npm run copy",
-    "pub": "npm publish ./dist"
+    "prepub": "npm run lint && npm run build",
+    "pub": "npm publish"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/editorconfig/editorconfig-core-js.git"
+    "url": "git://github.com/hildjj/ctoaf-editorconfig.git"
   },
-  "bugs": "https://github.com/editorconfig/editorconfig-core-js/issues",
+  "bugs": "https://github.com/hildjj/ctoaf-editorconfig/issues",
   "author": "EditorConfig Team",
   "license": "MIT",
   "dependencies": {
@@ -50,8 +48,6 @@
     "@types/mocha": "^9.1.1",
     "@types/node": "^18.7.13",
     "@types/semver": "^7.3.12",
-    "cpy-cli": "^4.2.0",
-    "eclint": "^2.8.1",
     "mocha": "^10.0.0",
     "peggy": "2.0.1",
     "rimraf": "^3.0.2",
