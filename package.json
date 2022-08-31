@@ -23,9 +23,9 @@
     "prebuild": "npm run clean",
     "build": "npm run parser && tsc",
     "pretest": "npm run lint && npm run build && cmake .",
-    "test": "ctest .",
+    "test": "ctest -C Release -E braces_closing_in_beginning -j 16 .",
     "pretest:ci": "npm run pretest",
-    "test:ci": "ctest -VV --output-on-failure .",
+    "test:ci": "ctest -C Release -E braces_closing_in_beginning -VV --output-on-failure .",
     "lint": "npm run tslint",
     "tslint": "tslint --project tsconfig.json --exclude package.json --exclude '**/*.js'",
     "prepub": "npm run lint && npm run build",
@@ -40,11 +40,11 @@
   "license": "MIT",
   "dependencies": {
     "commander": "^9.4.0",
-    "lru-cache": "^7.14.0",
-    "semver": "^7.3.7",
-    "sigmund": "^1.0.1"
+    "minimatch": "^5.1.0",
+    "semver": "^7.3.7"
   },
   "devDependencies": {
+    "@types/minimatch": "^5.1.2",
     "@types/mocha": "^9.1.1",
     "@types/node": "^18.7.13",
     "@types/semver": "^7.3.12",

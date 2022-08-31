@@ -2,10 +2,12 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as semver from 'semver'
 
-import minimatch from './fnmatch'
+import minimatch from 'minimatch'
 import { parseString, ParseStringResult } from './ini'
 
 export { parseString }
+
+const escapedSep = new RegExp(path.sep.replace(/\\/g, '\\\\'), 'g')
 
 // Ignore this so that we can set the rootDir to be 'lib'
 // @ts-ignore
@@ -114,7 +116,7 @@ function buildFullGlob(pathPrefix: string, glob: string) {
     default:
       break
   }
-  return path.join(pathPrefix, glob)
+  return `${pathPrefix}/${glob}`
 }
 
 function extendProps(props: {} = {}, options: {} = {}) {
@@ -150,7 +152,10 @@ function parseFromConfigs(
       .reverse()
       .reduce(
         (matches: KnownProps, file) => {
-          const pathPrefix = path.dirname(file.name)
+          let pathPrefix = path.dirname(file.name)
+          if (path.sep !== '/') {
+            pathPrefix = pathPrefix.replace(escapedSep, '/')
+          }
           file.contents.forEach((section) => {
             const glob = section[0]
             const options2 = section[1]
