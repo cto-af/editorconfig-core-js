@@ -38,9 +38,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/hildjj/ctoaf-editorconfig.git"
+    "url": "git://github.com/cto-af/ctoaf-editorconfig.git"
   },
-  "bugs": "https://github.com/hildjj/ctoaf-editorconfig/issues",
+  "bugs": "https://github.com/cto-af/ctoaf-editorconfig/issues",
+  "homepage": "https://github.com/cto-af/editorconfig-core-js",
   "author": "EditorConfig Team",
   "license": "MIT",
   "dependencies": {
