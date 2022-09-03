@@ -1,13 +1,13 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as semver from 'semver'
+import * as util from 'util'
 
 import minimatch from 'minimatch'
-import { parseString, ParseStringResult } from './ini'
-
-export { parseString }
+import { parse as peggyParse } from './iniFile'
 
 const escapedSep = new RegExp(path.sep.replace(/\\/g, '\\\\'), 'g')
+const readFile = util.promisify(fs.readFile)
 
 // Ignore this so that we can set the rootDir to be 'lib'
 // @ts-ignore
@@ -22,6 +22,11 @@ export interface KnownProps {
   trim_trailing_whitespace?: true | false | 'unset'
   charset?: string | 'unset'
 }
+
+interface UnknownMap {
+  [index: string]: unknown
+}
+export type Props = KnownProps & UnknownMap
 
 export interface ECFile {
   name: string
@@ -48,13 +53,29 @@ const knownProps = {
   charset: true,
 }
 
-function fnmatch(filepath: string, glob: string) {
+export type SectionName = string | null
+export interface SectionBody { [key: string]: string }
+export type ParseStringResult = Array<[SectionName, SectionBody]>
+
+export function parseString(data: string, file: string | number | Buffer | URL): ParseStringResult {
+  const grammarSource = String(file)
+  try {
+    return peggyParse(data, { grammarSource })
+  } catch (er) {
+    if (typeof er.format === 'function') {
+      er.message = er.format([{ source: grammarSource, text: data }])
+    }
+    throw er
+  }
+}
+
+function fnmatch(filepath: string, glob: string): boolean {
   const matchOptions = { matchBase: true, dot: true, noext: true }
   glob = glob.replace(/\*\*/g, '{*,**/**/**}')
   return minimatch(filepath, glob, matchOptions)
 }
 
-function getConfigFileNames(filepath: string, options: ParseOptions) {
+function getConfigFileNames(filepath: string, options: ParseOptions): string[] {
   const paths = []
   do {
     filepath = path.dirname(filepath)
@@ -63,7 +84,7 @@ function getConfigFileNames(filepath: string, options: ParseOptions) {
   return paths
 }
 
-function processMatches(matches: KnownProps, version: string) {
+function processMatches(matches: Props, version: string): Props {
   // Set indent_size to 'tab' if indent_size is unspecified and
   // indent_style is set to 'tab'.
   if (
@@ -97,7 +118,10 @@ function processMatches(matches: KnownProps, version: string) {
   return matches
 }
 
-function processOptions(options: ParseOptions = {}, filepath: string) {
+function processOptions(
+  options: ParseOptions,
+  filepath: string
+): ParseOptions {
   return {
     config: options.config || '.editorconfig',
     version: options.version || pkg.version,
@@ -119,19 +143,20 @@ function buildFullGlob(pathPrefix: string, glob: string) {
   return `${pathPrefix}/${glob}`
 }
 
-function extendProps(props: {} = {}, options: {} = {}) {
+function extendProps(props: Props, options: Props) {
   for (const key in options) {
     if (options.hasOwnProperty(key)) {
       const value = options[key]
       const key2 = key.toLowerCase()
       let value2 = value
       if (knownProps[key2]) {
-        value2 = value.toLowerCase()
+        // All of the values for the known props are lowercase.
+        value2 = String(value).toLowerCase()
       }
       try {
-        value2 = JSON.parse(value)
+        value2 = JSON.parse(String(value))
       } catch (e) {}
-      if (typeof value === 'undefined' || value === null) {
+      if (typeof value2 === 'undefined' || value2 === null) {
         // null and undefined are values specific to JSON (no special meaning
         // in editorconfig) & should just be returned as regular strings.
         value2 = String(value)
@@ -145,20 +170,18 @@ function extendProps(props: {} = {}, options: {} = {}) {
 function parseFromConfigs(
   configs: FileConfig[],
   filepath: string,
-  options: ParseOptions,
-) {
+  options: ParseOptions
+): Props {
   return processMatches(
     configs
       .reverse()
       .reduce(
-        (matches: KnownProps, file) => {
+        (matches: Props, file) => {
           let pathPrefix = path.dirname(file.name)
           if (path.sep !== '/') {
             pathPrefix = pathPrefix.replace(escapedSep, '/')
           }
-          file.contents.forEach((section) => {
-            const glob = section[0]
-            const options2 = section[1]
+          file.contents.forEach(([glob, options2]) => {
             if (!glob) {
               return
             }
@@ -170,14 +193,14 @@ function parseFromConfigs(
           })
           return matches
         },
-        {},
+        {}
       ),
-    options.version as string,
+    options.version as string
   )
 }
 
-function getConfigsForFiles(files: ECFile[]) {
-  const configs = []
+function getConfigsForFiles(files: ECFile[]): FileConfig[] {
+  const configs: FileConfig[] = []
   for (const i in files) {
     if (files.hasOwnProperty(i)) {
       const file = files[i]
@@ -194,20 +217,18 @@ function getConfigsForFiles(files: ECFile[]) {
   return configs
 }
 
-async function readConfigFiles(filepaths: string[]) {
-  return Promise.all(
-    filepaths.map((name) => new Promise((resolve) => {
-      fs.readFile(name, 'utf8', (err, data) => {
-        resolve({
-          name,
-          contents: err ? '' : data,
-        })
-      })
-    })),
+async function readConfigFiles(filepaths: string[]): Promise<ECFile[]> {
+  return Promise.all<ECFile>(
+    filepaths.map<Promise<ECFile>>(
+      (name) => readFile(name, 'utf8').then(
+        (contents) => ({ name, contents }),
+        () => ({ name, contents: '' })
+      )
+    )
   )
 }
 
-function readConfigFilesSync(filepaths: string[]) {
+function readConfigFilesSync(filepaths: string[]): ECFile[] {
   const files: ECFile[] = []
   let file: string | number | Buffer
   filepaths.forEach((filepath) => {
@@ -224,7 +245,7 @@ function readConfigFilesSync(filepaths: string[]) {
   return files
 }
 
-function opts(filepath: string, options: ParseOptions = {}): [
+function opts(filepath: string, options: ParseOptions): [
   string,
   ParseOptions
 ] {
@@ -238,31 +259,34 @@ function opts(filepath: string, options: ParseOptions = {}): [
 export async function parseFromFiles(
   filepath: string,
   files: Promise<ECFile[]>,
-  options: ParseOptions = {},
-) {
+  options: ParseOptions = {}
+): Promise<Props> {
   const [resolvedFilePath, processedOptions] = opts(filepath, options)
   return files.then(getConfigsForFiles)
     .then((configs) => parseFromConfigs(
       configs,
       resolvedFilePath,
-      processedOptions,
+      processedOptions
     ))
 }
 
 export function parseFromFilesSync(
   filepath: string,
   files: ECFile[],
-  options: ParseOptions = {},
-) {
+  options: ParseOptions = {}
+): Props {
   const [resolvedFilePath, processedOptions] = opts(filepath, options)
   return parseFromConfigs(
     getConfigsForFiles(files),
     resolvedFilePath,
-    processedOptions,
+    processedOptions
   )
 }
 
-export async function parse(_filepath: string, _options: ParseOptions = {}) {
+export async function parse(
+  _filepath: string,
+  _options: ParseOptions = {}
+): Promise<Props> {
   const [resolvedFilePath, processedOptions] = opts(_filepath, _options)
   const filepaths = getConfigFileNames(resolvedFilePath, processedOptions)
   return readConfigFiles(filepaths)
@@ -270,17 +294,17 @@ export async function parse(_filepath: string, _options: ParseOptions = {}) {
     .then((configs) => parseFromConfigs(
       configs,
       resolvedFilePath,
-      processedOptions,
+      processedOptions
     ))
 }
 
-export function parseSync(_filepath: string, _options: ParseOptions = {}) {
+export function parseSync(_filepath: string, _options: ParseOptions = {}): Props {
   const [resolvedFilePath, processedOptions] = opts(_filepath, _options)
   const filepaths = getConfigFileNames(resolvedFilePath, processedOptions)
   const files = readConfigFilesSync(filepaths)
   return parseFromConfigs(
     getConfigsForFiles(files),
     resolvedFilePath,
-    processedOptions,
+    processedOptions
   )
 }
