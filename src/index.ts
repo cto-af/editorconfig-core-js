@@ -13,6 +13,8 @@ const readFile = util.promisify(fs.readFile)
 // package.json
 import pkg from '../package.json'
 
+export const FILES = Symbol('FILES')
+
 // These are specified by the editorconfig script
 /* eslint-disable @typescript-eslint/naming-convention */
 export interface KnownProps {
@@ -23,6 +25,7 @@ export interface KnownProps {
   tab_width?: number | 'unset'
   trim_trailing_whitespace?: true | false | 'unset'
   charset?: string | 'unset'
+  [FILES]: string[]
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -161,12 +164,12 @@ function buildFullGlob(pathPrefix: string, glob: string): string {
   return `${pathPrefix}/${glob}`
 }
 
-function extendProps(props: Props, options: Props): Props {
+function extendProps(props: Props, options: SectionBody): Props {
   for (const key in options) {
     if (options.hasOwnProperty(key)) {
       const value = options[key]
       const key2 = key.toLowerCase()
-      let value2 = value
+      let value2: unknown = value
       if (knownProps[key2]) {
         // All of the values for the known props are lowercase.
         value2 = String(value).toLowerCase()
@@ -207,11 +210,12 @@ function parseFromConfigs(
             if (!fnmatch(filepath, fullGlob)) {
               return
             }
+            matches[FILES].push(file.name)
             matches = extendProps(matches, options2)
           })
           return matches
         },
-        {}
+        { [FILES]: [] }
       ),
     options.version as string
   )

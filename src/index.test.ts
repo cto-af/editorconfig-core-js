@@ -18,6 +18,7 @@ describe('parse', () => {
     block_comment: '*',
     block_comment_end: '*/',
     block_comment_start: '/**',
+    [editorconfig.FILES]: [],
   }
   const target = path.join(__dirname, '/app.js')
 
@@ -42,6 +43,7 @@ describe('parseFromFiles', () => {
     insert_final_newline: true,
     tab_width: 2,
     trim_trailing_whitespace: true,
+    [editorconfig.FILES]: [],
   }
 
   const configs: editorconfig.ECFile[] = []
