@@ -1,6 +1,6 @@
 # EditorConfig JavaScript Core
 
-[![Tests](https://github.com/editorconfig/editorconfig-core-js/actions/workflows/node.js.yml/badge.svg)](https://github.com/editorconfig/editorconfig-core-js/actions/workflows/node.js.yml)
+[![Tests](https://github.com/hildjj/ctoaf-editorconfig/actions/workflows/node.js.yml/badge.svg)](https://github.com/hildjj/ctoaf-editorconfig/actions/workflows/node.js.yml)
 
 The EditorConfig JavaScript core will provide the same functionality as the
 [EditorConfig C Core][] and [EditorConfig Python Core][].
@@ -13,13 +13,13 @@ You need [node][] to use this package.
 To install the package locally:
 
 ```bash
-$ npm install editorconfig
+$ npm install @cto.af/editorconfig
 ```
 
 To install the package system-wide:
 
 ```bash
-$ npm install -g editorconfig
+$ npm install -g @cto.af/editorconfig
 ```
 
 ## Usage
@@ -200,7 +200,14 @@ To run the tests with increased verbosity (for debugging test failures):
 $ npm run-script test-verbose
 ```
 
+# History
+
+Forked from [EditorConfig JS Core][] in August 2022.  This repo will be
+mothballed and the project marked deprecated as soon as that project seems to
+be maintained again.
+
 [EditorConfig C Core]: https://github.com/editorconfig/editorconfig-core
+[EditorConfig JS Core]: https://github.com/editorconfig/editorconfig-core-js
 [EditorConfig Python Core]: https://github.com/editorconfig/editorconfig-core-py
 [node]: http://nodejs.org/
 [cmake]: http://www.cmake.org

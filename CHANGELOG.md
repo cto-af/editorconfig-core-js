@@ -1,3 +1,16 @@
+## Major
+
+- Update dependencies
+- Tweak build process so that it runs with current-version dependencies
+- Update to support latest Commander version
+- Create a [Peggy](https://peggyjs.org/)-based grammar
+- Update to the latest test suite
+- Passes 100% of test suite tests on Linux, Mac, and Windows
+- Move from Travis (hasn't worked in a year) to GitHub Actions
+- Test on node 12,14,16,18, on all supported platforms
+- Manual tests pass on node 8 Linux, but build-time dependencies no longer support pre-node 12, so added engines to package.json for the tested versions only
+- Simplify project structure and build process
+
 ## 0.15.3
 - Move @types dependencies to dev dependencies.
 - Upgrade dependencies.
