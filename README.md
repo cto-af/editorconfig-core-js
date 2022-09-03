@@ -1,6 +1,10 @@
 # EditorConfig JavaScript Core
 
-[![Tests](https://github.com/hildjj/ctoaf-editorconfig/actions/workflows/node.js.yml/badge.svg)](https://github.com/hildjj/ctoaf-editorconfig/actions/workflows/node.js.yml)
+[![Tests](https://github.com/cto-af/editorconfig-core-js/actions/workflows/node.js.yml/badge.svg)](https://github.com/cto-af/editorconfig-core-js/actions/workflows/node.js.yml)
+
+NOTE: This is currently a fork unauthorized by the EditorConfig team.  It
+seems as if their JavaScript core is currently unmaintained.  As soon as that
+situation is resolved, this fork will go away in favor of the original code.
 
 The EditorConfig JavaScript core will provide the same functionality as the
 [EditorConfig C Core][] and [EditorConfig Python Core][].
@@ -129,18 +133,17 @@ Synchronous version of `editorconfig.parseFromFiles()`.
 ```bash
 $ ./bin/editorconfig
 
-    Usage: editorconfig [OPTIONS] FILEPATH1 [FILEPATH2 FILEPATH3 ...]
+Usage: editorconfig [options] <FILEPATH...>
 
-    EditorConfig Node.js Core Version 0.11.4-development
+Arguments:
+  FILEPATH       Files to find configuration for.  Can be a hyphen (-) if you
+                 want path(s) to be read from stdin.
 
-    FILEPATH can be a hyphen (-) if you want path(s) to be read from stdin.
-
-    Options:
-
-        -h, --help     output usage information
-        -V, --version  output the version number
-        -f <path>      Specify conf filename other than ".editorconfig"
-        -b <version>   Specify version (used by devs to test compatibility)
+Options:
+  -v, --version  Display version information
+  -f <path>      Specify conf filename other than '.editorconfig'
+  -b <version>   Specify version (used by devs to test compatibility)
+  -h, --help     display help for command
 ```
 
 Example:
@@ -166,8 +169,7 @@ Next, run the following commands:
 
 ```bash
 $ npm run build
-$ npm run copy
-$ npm link ./dist
+$ npm link
 ```
 
 The global editorconfig will now point to the files in your development
@@ -197,17 +199,16 @@ $ npm test
 To run the tests with increased verbosity (for debugging test failures):
 
 ```bash
-$ npm run-script test-verbose
+$ npm run-script test:ci
 ```
 
-# History
+You make want to run the tests in parallel to radically speed up the process:
 
-Forked from [EditorConfig JS Core][] in August 2022.  This repo will be
-mothballed and the project marked deprecated as soon as that project seems to
-be maintained again.
+```bash
+export CTEST_PARALLEL_LEVEL=16
+```
 
 [EditorConfig C Core]: https://github.com/editorconfig/editorconfig-core
-[EditorConfig JS Core]: https://github.com/editorconfig/editorconfig-core-js
 [EditorConfig Python Core]: https://github.com/editorconfig/editorconfig-core-py
 [node]: http://nodejs.org/
 [cmake]: http://www.cmake.org
