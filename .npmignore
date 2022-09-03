@@ -22,3 +22,4 @@ src/
 tsconfig.json
 tslint.json
 CMakePresets.json
+coverage/
