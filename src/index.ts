@@ -9,10 +9,12 @@ import { parse as peggyParse } from './iniFile'
 const escapedSep = new RegExp(path.sep.replace(/\\/g, '\\\\'), 'g')
 const readFile = util.promisify(fs.readFile)
 
-// Ignore this so that we can set the rootDir to be 'lib'
-// @ts-ignore
+// @ts-ignore So we can set the rootDir to be 'lib', without processing
+// package.json
 import pkg from '../package.json'
 
+// These are specified by the editorconfig script
+/* eslint-disable @typescript-eslint/naming-convention */
 export interface KnownProps {
   end_of_line?: 'lf' | 'crlf' | 'unset'
   indent_style?: 'tab' | 'space' | 'unset'
@@ -22,6 +24,7 @@ export interface KnownProps {
   trim_trailing_whitespace?: true | false | 'unset'
   charset?: string | 'unset'
 }
+/* eslint-enable @typescript-eslint/naming-convention */
 
 interface UnknownMap {
   [index: string]: unknown
@@ -44,6 +47,8 @@ export interface ParseOptions {
   root?: string
 }
 
+// These are specified by the editorconfig script
+/* eslint-disable @typescript-eslint/naming-convention */
 const knownProps = {
   end_of_line: true,
   indent_style: true,
@@ -52,19 +57,32 @@ const knownProps = {
   trim_trailing_whitespace: true,
   charset: true,
 }
+/* eslint-enable @typescript-eslint/naming-convention */
 
 export type SectionName = string | null
 export interface SectionBody { [key: string]: string }
-export type ParseStringResult = Array<[SectionName, SectionBody]>
+export type ParseStringResult = [SectionName, SectionBody][]
 
-export function parseString(data: string, file: string | number | Buffer | URL): ParseStringResult {
+export function parseString(
+  data: string,
+  file: string | number | Buffer | URL
+): ParseStringResult {
   const grammarSource = String(file)
   try {
-    return peggyParse(data, { grammarSource })
+    return peggyParse(data, { grammarSource }) as ParseStringResult
   } catch (er) {
-    if (typeof er.format === 'function') {
+    // Don't pull in the whole Peggy .d.ts just for better errors
+    /* eslint-disable
+      @typescript-eslint/no-unsafe-member-access,
+      @typescript-eslint/no-unsafe-assignment,
+      @typescript-eslint/no-unsafe-call */
+    if ((typeof er === 'object') && (typeof er.format === 'function')) {
       er.message = er.format([{ source: grammarSource, text: data }])
     }
+    /* eslint-enable
+      @typescript-eslint/no-unsafe-member-access,
+      @typescript-eslint/no-unsafe-assignment,
+      @typescript-eslint/no-unsafe-call */
     throw er
   }
 }
@@ -129,21 +147,21 @@ function processOptions(
   }
 }
 
-function buildFullGlob(pathPrefix: string, glob: string) {
+function buildFullGlob(pathPrefix: string, glob: string): string {
   switch (glob.indexOf('/')) {
-    case -1:
-      glob = '**/' + glob
-      break
-    case 0:
-      glob = glob.substring(1)
-      break
-    default:
-      break
+  case -1:
+    glob = '**/' + glob
+    break
+  case 0:
+    glob = glob.substring(1)
+    break
+  default:
+    break
   }
   return `${pathPrefix}/${glob}`
 }
 
-function extendProps(props: Props, options: Props) {
+function extendProps(props: Props, options: Props): Props {
   for (const key in options) {
     if (options.hasOwnProperty(key)) {
       const value = options[key]
@@ -201,17 +219,14 @@ function parseFromConfigs(
 
 function getConfigsForFiles(files: ECFile[]): FileConfig[] {
   const configs: FileConfig[] = []
-  for (const i in files) {
-    if (files.hasOwnProperty(i)) {
-      const file = files[i]
-      const contents = parseString(file.contents as string, file.name)
-      configs.push({
-        name: file.name,
-        contents,
-      })
-      if ((contents[0][1].root || '').toLowerCase() === 'true') {
-        break
-      }
+  for (const file of files) {
+    const contents = parseString(file.contents as string, file.name)
+    configs.push({
+      name: file.name,
+      contents,
+    })
+    if ((contents[0][1].root || '').toLowerCase() === 'true') {
+      break
     }
   }
   return configs
@@ -298,7 +313,10 @@ export async function parse(
     ))
 }
 
-export function parseSync(_filepath: string, _options: ParseOptions = {}): Props {
+export function parseSync(
+  _filepath: string,
+  _options: ParseOptions = {}
+): Props {
   const [resolvedFilePath, processedOptions] = opts(_filepath, _options)
   const filepaths = getConfigFileNames(resolvedFilePath, processedOptions)
   const files = readConfigFilesSync(filepaths)
