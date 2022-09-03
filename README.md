@@ -1,6 +1,7 @@
 # EditorConfig JavaScript Core
 
 [![Tests](https://github.com/cto-af/editorconfig-core-js/actions/workflows/node.js.yml/badge.svg)](https://github.com/cto-af/editorconfig-core-js/actions/workflows/node.js.yml)
+[![codecov](https://codecov.io/gh/cto-af/editorconfig-core-js/branch/main/graph/badge.svg?token=3MCX94S47F)](https://codecov.io/gh/cto-af/editorconfig-core-js)
 
 NOTE: This is currently a fork unauthorized by the EditorConfig team.  It
 seems as if their JavaScript core is currently unmaintained.  As soon as that
