@@ -1,4 +1,0 @@
-[submodule "tests"]
-	path = tests
-	url = https://github.com/editorconfig/editorconfig-core-test.git
-	ignore = untracked
